@@ -78,6 +78,35 @@ func defaultAccounts() map[string]string {
 	}
 }
 
+const defaultConfigJSON = `{
+  "port": 12001,
+  "server_path": "/LimiT/quErY",
+  "cache_ttl": 600,
+  "disabled": [],
+  "gemini": {
+    "client_id": "1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com",
+    "client_secret": "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",
+    "oauth_ua": "vscode/1.X.X (Antigravity/4.2.1)",
+    "api_ua": "Antigravity/4.2.1 (Macintosh; Intel Mac OS X 10_15_7) Chrome/132.0.6834.160 Electron/39.2.3"
+  },
+  "_comment_gemini": "client_id 和 client_secret 是 Antigravity 项目的固定 OAuth 凭据，无需修改",
+  "codex": {
+    "client_id": "app_EMoamEEZ73f0CkXaXp7hrann",
+    "ua": "codex_cli_rs/0.118.0 (Mac OS 26.3.1; arm64) iTerm.app/3.6.9"
+  },
+  "_comment_codex": "client_id 和 ua 是 Codex CLI 固定标识，无需修改",
+  "zhipu": {
+    "api_key": "在此填入您的智谱 API Key"
+  },
+  "notify": {
+    "sendkey": ""
+  },
+  "accounts": {
+    "gemini": "auths/gemini_account.json",
+    "codex": "auths/codex_account.json"
+  }
+}`
+
 func LoadConfig() *Config {
 	cfgOnce.Do(func() {
 		cfg = &Config{
@@ -85,6 +114,16 @@ func LoadConfig() *Config {
 			ServerPath: "/LimiT/quErY",
 			CacheTTL:   600,
 			Disabled:   []string{},
+			Gemini: GeminiConfig{
+				ClientID:     "1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com",
+				ClientSecret: "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",
+				OAuthUA:      "vscode/1.X.X (Antigravity/4.2.1)",
+				APIUA:        "Antigravity/4.2.1 (Macintosh; Intel Mac OS X 10_15_7) Chrome/132.0.6834.160 Electron/39.2.3",
+			},
+			Codex: CodexConfig{
+				ClientID: "app_EMoamEEZ73f0CkXaXp7hrann",
+				UA:       "codex_cli_rs/0.118.0 (Mac OS 26.3.1; arm64) iTerm.app/3.6.9",
+			},
 			Zhipu: ZhipuConfig{
 				APIKey: "在此填入您的智谱 API Key",
 			},
@@ -94,8 +133,11 @@ func LoadConfig() *Config {
 		data, err := os.ReadFile(path)
 		if err != nil {
 			// Config file doesn't exist yet — write template so user can edit it.
-			saveJSON(path, cfg)
-			fmt.Printf("未找到配置文件，已创建模板: %s\n请编辑后重新启动\n", path)
+			if werr := os.WriteFile(path, []byte(defaultConfigJSON), 0600); werr != nil {
+				fmt.Printf("创建模板配置文件失败: %s\n", werr)
+			} else {
+				fmt.Printf("未找到配置文件，已创建模板: %s\n请编辑后重新启动\n", path)
+			}
 			return
 		}
 		json.Unmarshal(data, cfg)
@@ -117,6 +159,25 @@ func LoadConfig() *Config {
 					cfg.Accounts[k] = v
 				}
 			}
+		}
+		// Gemini/Codex 固定凭据：用户无需手动填写，缺失时自动补全
+		if cfg.Gemini.ClientID == "" {
+			cfg.Gemini.ClientID = "1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com"
+		}
+		if cfg.Gemini.ClientSecret == "" {
+			cfg.Gemini.ClientSecret = "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"
+		}
+		if cfg.Gemini.OAuthUA == "" {
+			cfg.Gemini.OAuthUA = "vscode/1.X.X (Antigravity/4.2.1)"
+		}
+		if cfg.Gemini.APIUA == "" {
+			cfg.Gemini.APIUA = "Antigravity/4.2.1 (Macintosh; Intel Mac OS X 10_15_7) Chrome/132.0.6834.160 Electron/39.2.3"
+		}
+		if cfg.Codex.ClientID == "" {
+			cfg.Codex.ClientID = "app_EMoamEEZ73f0CkXaXp7hrann"
+		}
+		if cfg.Codex.UA == "" {
+			cfg.Codex.UA = "codex_cli_rs/0.118.0 (Mac OS 26.3.1; arm64) iTerm.app/3.6.9"
 		}
 	})
 	return cfg
