@@ -11,6 +11,8 @@ jobs:
   # ── ESP32-C3 固件 ─────────────────────────────────────────────────────
   firmware:
     runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Shanghai
     steps:
       - uses: actions/checkout@v4
 
