@@ -63,6 +63,47 @@ run/app.pid              # 后台服务 PID
 | `EINK_HTTP_TIMEOUT_SEC` | `8` | 代理配额请求超时秒数 |
 | `EINK_KEEP_HEARTBEATS` | `1000` | 每台设备保留最近心跳数量 |
 
+## 本地构建
+
+`smart_control` 使用 SQLite，依赖 `github.com/mattn/go-sqlite3`，所以本地构建需要启用 CGO。
+
+从仓库根目录构建：
+
+```bash
+cd backend/smart_control
+CGO_ENABLED=1 go build -trimpath -ldflags="-s -w" -o elnk-console .
+```
+
+也可以在仓库根目录一行构建：
+
+```bash
+(cd backend/smart_control && CGO_ENABLED=1 go build -trimpath -ldflags="-s -w" -o elnk-console .)
+```
+
+macOS 如果提示找不到 C 编译器，先安装 Xcode Command Line Tools：
+
+```bash
+xcode-select --install
+```
+
+构建完成后，当前目录会生成 `elnk-console` 可执行文件：
+
+```bash
+./elnk-console server start
+curl http://localhost:9857/health
+```
+
+如果需要同时打包可执行文件和 `static/` 前端资源，使用项目内脚本：
+
+```bash
+cd backend/smart_control
+./build.sh darwin-arm64
+./build.sh linux-amd64
+./build.sh all
+```
+
+产物输出到 `backend/smart_control/dist/`。
+
 ## 数据库
 
 SQLite 使用 WAL 模式，`SetMaxOpenConns(1)`，避免 SQLite 并发写锁问题。

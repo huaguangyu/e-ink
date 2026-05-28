@@ -526,6 +526,22 @@ lib_deps =
 
 粗体/半粗体全部来自真实 Inter TTF 转换结果，不做算法加粗。
 
+#### 字体工具依赖
+
+字体转换脚本使用 Python + Pillow：
+
+```bash
+python3 -m pip install pillow
+```
+
+所有命令都从 `firmware/` 目录执行：
+
+```bash
+cd firmware
+```
+
+#### Inter ASCII 字体
+
 Inter 字体源文件位于：
 
 ```text
@@ -534,22 +550,19 @@ firmware/tools/fonts/Inter/
 
 其中包含 Inter Variable 原始字体和当前转换用的 static TTF。Variable Font 用于以后重新选择字重、字号或字符集；当前固件生成使用 `Inter-18pt-Regular.ttf`、`Inter-24pt-Regular.ttf`、`Inter-24pt-SemiBold.ttf`、`Inter-24pt-Bold.ttf`。
 
-转换脚本：
+生成 Inter 的 Adafruit_GFX `GFXfont` 头文件：
 
 ```bash
-cd firmware
 python3 tools/convert_inter_to_gfxfont.py
-python3 tools/convert_cn_to_gfxfont.py
 ```
 
-生成文件：
+会生成：
 
 ```text
 src/fonts/inter_regular_11.h
 src/fonts/inter_regular_14.h
 src/fonts/inter_semibold_18.h
 src/fonts/inter_bold_28.h
-src/fonts/cn_12.h
 ```
 
 当前已生成：
@@ -564,6 +577,49 @@ src/fonts/cn_12.h
 Inter 转换范围是 ASCII `0x20~0x7E`，包含英文大小写、数字和常见英文 UI 特殊字符，例如 `%`、`:`、`/`、`-`、`.`、`(`、`)`、`@`、`_`。Inter 原始字体包含更多字符，但没有导出的字符不会进入固件。
 
 > 注意：Adafruit_GFX 的 `GFXfont` 位图要求每个 glyph 按连续 bit 流打包，不能按行补齐字节。`tools/convert_inter_to_gfxfont.py` 已按连续 bit 流生成。若后续英文/特殊字符出现“糊成一片”，优先检查是否误把 Inter 字体改回了按行补齐格式。
+
+#### 中文日期小字库
+
+中文日期小字库源文件：
+
+```text
+firmware/tools/fonts/STHeiti Medium.ttc
+```
+
+生成中文日期栏使用的 `GFXfont`：
+
+```bash
+python3 tools/convert_cn_to_gfxfont.py
+```
+
+会生成：
+
+```text
+src/fonts/cn_12.h
+```
+
+默认字符集在 `tools/convert_cn_to_gfxfont.py` 的 `CHARS` 常量中：
+
+```python
+CHARS = "周一二三四五六日月凌晨清上午中下晚"
+```
+
+如果要增加中文字符：
+
+1. 修改 `CHARS`，追加需要的字符。
+2. 重新运行 `python3 tools/convert_cn_to_gfxfont.py`。
+3. 在 `src/ui/widgets_gx.cpp` 或 UI 代码中使用对应字符。
+
+中文小字库使用私有区码点从 `0xE000` 起映射，`drawMixedDateCnGx()` 会按 `Cn12Chars` 查找字符并混排绘制。没有加入 `CHARS` 的中文不会显示。
+
+#### 常用转换命令
+
+日常维护只需要使用当前 GFXfont 转换脚本：
+
+```bash
+python3 tools/convert_inter_to_gfxfont.py
+python3 tools/convert_cn_to_gfxfont.py
+```
 
 当前 Inter bitmap payload 约 `7169 bytes`，TTF 源文件不会被编译进固件。配额看板页、配网页、状态页和错误页已切换到 GxEPD2 / Adafruit_GFX 绘制；长文本会自动截断，避免溢出屏幕。最近编译验证：
 

@@ -54,6 +54,27 @@ cp .config.example.json .config.json
 ./quota_checker server start
 ```
 
+## 本地构建
+
+`quota_go` 是纯 Go 项目，不依赖 CGO。从仓库根目录构建：
+
+```bash
+cd backend/quota_go
+go build -o quota_checker ./src
+```
+
+也可以在仓库根目录一行构建：
+
+```bash
+(cd backend/quota_go && go build -o quota_checker ./src)
+```
+
+构建完成后，当前目录会生成 `quota_checker` 可执行文件。运行前复制配置模板：
+
+```bash
+cp .config.example.json .config.json
+```
+
 ### 首次运行自动初始化
 
 如果启动时当前目录没有 `.config.json`，服务会自动：
