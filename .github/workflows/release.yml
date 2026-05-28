@@ -17,11 +17,8 @@ jobs:
       - name: Install PlatformIO
         run: pip install platformio
 
-      - name: Build wft0420cz15
-        run: pio run -e wft0420cz15 -d firmware
-
-      - name: Build gdey042t81
-        run: pio run -e gdey042t81 -d firmware
+      - name: Build firmware
+        run: pio run -e wft0420cz15 -e gdey042t81 -d firmware
 
       - name: Collect merged firmware
         run: |
