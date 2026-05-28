@@ -1,0 +1,53 @@
+# PlatformIO
+.pio/
+compile_commands.json
+
+# IDE
+.vscode/
+*.swp
+*.swo
+*~
+
+# Build output
+build/
+bin/
+obj/
+dist/
+*.elf
+*.bin
+*.hex
+*.map
+elnk
+eink-console
+elnk-console
+
+# Runtime data
+*.db
+*.db-shm
+*.db-wal
+run/
+firmware/src/firmware_version.h
+
+# Credentials & secrets
+backend/quota_go/auths/
+backend/quota_go/cache/
+backend/quota_go/.config.json
+
+# Reference code (kept outside repo)
+CLIProxyAPI-main/
+Antigravity-Manager-main/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+log.txt
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Claude
+.claude/

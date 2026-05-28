@@ -1,0 +1,1747 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Eink Console - 墨水屏设备智控台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root {
+  /* Default Theme: Deep Midnight Dark Theme */
+  --bg-app: radial-gradient(circle at 50% 50%, #0d1424 0%, #060912 100%);
+  --bg-card: rgba(13, 20, 38, 0.65);
+  --border-card: rgba(255, 255, 255, 0.06);
+  --border-card-hover: rgba(255, 255, 255, 0.12);
+  --text-primary: #f3f4f6;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  --text-subtle: #4b5563;
+  --soft-bg: rgba(255, 255, 255, 0.03);
+  --line-color: rgba(255, 255, 255, 0.08);
+  
+  --neon-blue: #3b82f6;
+  --neon-blue-glow: rgba(59, 130, 246, 0.35);
+  --neon-green: #10b981;
+  --neon-green-glow: rgba(16, 185, 129, 0.35);
+  --neon-yellow: #f59e0b;
+  --neon-yellow-glow: rgba(245, 158, 11, 0.35);
+  --neon-orange: #f97316;
+  --neon-red: #ef4444;
+  --neon-red-glow: rgba(239, 68, 68, 0.35);
+  
+  --shadow-card: 0 16px 40px rgba(0, 0, 0, 0.35);
+  
+  --f-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --f-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  
+  --topbar-h: 68px;
+  --gap: 14px;
+  --card-pad: 16px;
+  
+  --ease-elastic: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body.theme-light {
+  /* Light Theme: Elegant Creamy Porcelain */
+  --bg-app: radial-gradient(circle at 50% 50%, #f4f6fa 0%, #e2e8f0 100%);
+  --bg-card: rgba(255, 255, 255, 0.82);
+  --border-card: rgba(0, 0, 0, 0.07);
+  --border-card-hover: rgba(0, 0, 0, 0.15);
+  --text-primary: #1e293b;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --text-subtle: #94a3b8;
+  --soft-bg: rgba(0, 0, 0, 0.03);
+  --line-color: rgba(0, 0, 0, 0.07);
+  
+  --neon-blue: #2563eb;
+  --neon-blue-glow: rgba(37, 99, 235, 0.25);
+  --neon-green: #059669;
+  --neon-green-glow: rgba(5, 150, 105, 0.25);
+  --neon-yellow: #d97706;
+  --neon-yellow-glow: rgba(217, 119, 6, 0.25);
+  --neon-orange: #ea580c;
+  --neon-red: #dc2626;
+  --neon-red-glow: rgba(220, 38, 38, 0.25);
+  
+  --shadow-card: 0 12px 30px rgba(148, 163, 184, 0.12);
+}
+
+html {
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--f-sans);
+  background: var(--bg-app);
+  color: var(--text-primary);
+  line-height: 1.5;
+  height: 100%;
+  overflow: hidden;
+  transition: background 0.4s var(--ease-smooth);
+}
+
+/* App Structure */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Topbar Header */
+.topbar {
+  height: var(--topbar-h);
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 10;
+  transition: all 0.4s var(--ease-smooth);
+  flex-shrink: 0;
+}
+
+.topbar-inner {
+  height: 100%;
+  max-width: none;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.brand h1 {
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.brand p {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+  font-weight: 500;
+}
+
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.theme-toggle-btn {
+  background: var(--soft-bg);
+  border: 1px solid var(--border-card);
+  color: var(--text-primary);
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s var(--ease-elastic);
+  outline: none;
+}
+.theme-toggle-btn:hover {
+  background: var(--border-card);
+  border-color: var(--border-card-hover);
+  box-shadow: 0 0 12px var(--neon-blue-glow);
+  transform: scale(1.05);
+}
+
+.status-pill {
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--neon-green);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.1);
+}
+
+.refresh-btn {
+  background: var(--neon-blue);
+  border: 1px solid var(--neon-blue);
+  border-radius: 8px;
+  padding: 6px 16px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  color: #fff;
+  transition: all 0.3s var(--ease-smooth);
+  box-shadow: 0 4px 12px var(--neon-blue-glow);
+}
+.refresh-btn:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+  transform: translateY(-1px);
+}
+
+/* Symmetrical 2x2 Grid Layout */
+.dashboard-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 430px minmax(0, 1fr);
+  grid-template-rows: 1fr 1fr;
+  grid-template-areas:
+    "status tasks"
+    "control history";
+  gap: var(--gap);
+  padding: 0 var(--gap) var(--gap) var(--gap);
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* Cards Glassmorphism styling */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: 12px;
+  box-shadow: var(--shadow-card);
+  padding: var(--card-pad);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  min-height: 0;
+  overflow: hidden; /* Lock scrollbars */
+  transition: border-color 0.3s var(--ease-smooth), box-shadow 0.3s var(--ease-smooth);
+  display: flex;
+  flex-direction: column;
+}
+.card:hover {
+  border-color: var(--border-card-hover);
+}
+
+.card-title {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.card-title span {
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+}
+.card-title select {
+  font-size: 0.78rem;
+  padding: 3px 8px;
+  border: 1px solid var(--border-card);
+  border-radius: 6px;
+  background: var(--soft-bg);
+  color: var(--text-primary);
+  cursor: pointer;
+  outline: none;
+  max-width: 180px;
+  transition: all 0.2s var(--ease-smooth);
+}
+.card-title select:hover {
+  border-color: var(--border-card-hover);
+}
+
+.status-card { grid-area: status; }
+.control-card { grid-area: control; }
+.tasks-card { grid-area: tasks; }
+.history-card { grid-area: history; }
+
+/* Compact Status Card Header (circular gauge + summary side-by-side) */
+.status-card-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+/* Circular Battery Gauge styles */
+.battery-circular {
+  position: relative;
+  width: 76px;
+  height: 76px;
+  flex-shrink: 0;
+}
+.circular-chart {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+}
+.circle-bg {
+  fill: none;
+  stroke: var(--soft-bg);
+  stroke-width: 2.8;
+}
+.circle {
+  fill: none;
+  stroke-width: 2.8;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.8s var(--ease-elastic);
+}
+.circular-chart.green .circle { stroke: var(--neon-green); filter: drop-shadow(0 0 3px var(--neon-green-glow)); }
+.circular-chart.yellow .circle { stroke: var(--neon-yellow); filter: drop-shadow(0 0 3px var(--neon-yellow-glow)); }
+.circular-chart.orange .circle { stroke: var(--neon-orange); filter: drop-shadow(0 0 3px rgba(249, 115, 22, 0.4)); }
+.circular-chart.red .circle { stroke: var(--neon-red); filter: drop-shadow(0 0 3px var(--neon-red-glow)); }
+
+.battery-info {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.battery-pct-val {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1;
+}
+.battery-volt-val {
+  font-size: 0.68rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  margin-top: 1px;
+}
+
+/* Device Status Summary Blocks (Compact Grid) */
+.summary-grid-compact {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.summary-tile-compact {
+  background: var(--soft-bg);
+  border: 1px solid var(--border-card);
+  border-radius: 8px;
+  padding: 8px;
+  text-align: center;
+  transition: all 0.2s var(--ease-smooth);
+}
+.summary-tile-compact:hover {
+  border-color: var(--border-card-hover);
+}
+.summary-label-compact {
+  font-size: 0.68rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 2px;
+}
+.summary-value-compact {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+.summary-sub-compact {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* Hidden traditional elements still needed by JS */
+#batteryPct, #batteryVolt, #sleepMinText {
+  display: inline;
+}
+
+/* 3-Column Compact Grid for Device Parameters */
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  border-top: 1px solid var(--line-color);
+  padding-top: 10px;
+  flex-shrink: 0;
+}
+.status-grid .empty {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+.status-row {
+  background: var(--soft-bg);
+  border: 1px solid var(--border-card);
+  border-radius: 6px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 2px;
+  border-bottom: none;
+}
+.status-label {
+  font-size: 0.68rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+.status-value {
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  font-weight: 700;
+  font-family: var(--f-mono);
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Pulsing Online indicators */
+.heartbeat-pulse-glow {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background-color: var(--neon-green);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--neon-green);
+  animation: pulse-ring 2.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.8); }
+  70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.empty {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  padding: 12px 0;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* Remote Control Redesigned Tab Switcher Style */
+.ctrl-tab-header {
+  display: flex;
+  border-bottom: 1px solid var(--line-color);
+  margin-bottom: 10px;
+  flex-shrink: 0;
+  gap: 16px;
+}
+.ctrl-tab-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 6px 4px 8px 4px;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s var(--ease-smooth);
+}
+.ctrl-tab-btn:hover {
+  color: var(--text-primary);
+}
+.ctrl-tab-btn.active {
+  color: var(--neon-blue);
+}
+.ctrl-tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--neon-blue);
+  box-shadow: 0 0 8px var(--neon-blue-glow);
+  border-radius: 99px;
+}
+
+.ctrl-tab-content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.ctrl-tab-panel {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Symmetrical and sleek instant control mini-buttons with theme-aware text contrast */
+.ctrl-mini-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.ctrl-btn-mini {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-primary); /* Corrected from hardcoded white to adapt perfectly to dark/light mode */
+  background: var(--soft-bg);
+  border: 1px solid var(--border-card);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s var(--ease-smooth);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.ctrl-btn-mini:hover {
+  border-color: var(--neon-blue);
+  background: rgba(59, 130, 246, 0.08);
+  box-shadow: 0 0 10px var(--neon-blue-glow);
+  transform: translateY(-1px);
+  color: var(--neon-blue); /* Neon blue text color highlight on hover */
+}
+.ctrl-btn-mini.restart:hover {
+  border-color: var(--neon-red);
+  background: rgba(239, 68, 68, 0.08);
+  box-shadow: 0 0 10px var(--neon-red-glow);
+  color: var(--neon-red); /* Neon red text color highlight on hover */
+}
+
+.page-row-compact, .sleep-row-compact, .default-row-compact {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--soft-bg);
+  border: 1px solid var(--border-card);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.8rem;
+}
+.page-row-compact label, .sleep-row-compact label, .default-row-compact label {
+  color: var(--text-secondary);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.page-row-compact select {
+  flex: 1;
+  padding: 4px 6px;
+  border: 1px solid var(--border-card);
+  border-radius: 5px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  outline: none;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.page-row-compact select:focus {
+  border-color: var(--neon-blue);
+}
+.page-row-compact button, .sleep-row-compact button {
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--neon-blue);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.page-row-compact button:hover, .sleep-row-compact button:hover {
+  background: #2563eb;
+}
+
+.sleep-row-compact input, .default-row-compact input {
+  width: 50px;
+  padding: 4px;
+  border: 1px solid var(--border-card);
+  border-radius: 5px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  outline: none;
+  font-size: 0.8rem;
+  text-align: center;
+  font-family: var(--f-mono);
+}
+.sleep-row-compact input:focus, .default-row-compact input:focus {
+  border-color: var(--neon-blue);
+  box-shadow: 0 0 6px var(--neon-blue-glow);
+}
+.sleep-row-compact span, .default-row-compact span {
+  color: var(--text-secondary);
+}
+
+/* Mode Switch Tabs inside Wake Tab */
+.mode-switch {
+  display: flex;
+  background: var(--soft-bg);
+  border: 1px solid var(--border-card);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 8px;
+  padding: 1px;
+  flex-shrink: 0;
+}
+.mode-btn {
+  flex: 1;
+  padding: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s var(--ease-smooth);
+}
+.mode-btn.active {
+  background: var(--neon-blue);
+  color: #fff;
+  box-shadow: 0 2px 6px var(--neon-blue-glow);
+}
+.mode-btn:hover:not(.active) {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+#fixedPanel {
+  flex-shrink: 0;
+}
+#customPanel {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Custom time slot controls styling */
+.slots-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 6px;
+  margin-bottom: 6px;
+}
+#slotList {
+  max-height: 100px;
+  overflow-y: auto;
+  margin-bottom: 6px;
+}
+#slotList::-webkit-scrollbar {
+  width: 4px;
+}
+#slotList::-webkit-scrollbar-thumb {
+  background: var(--border-card-hover);
+  border-radius: 99px;
+}
+
+.slot-row {
+  display: grid;
+  grid-template-columns: 80px 12px 80px 12px 46px 12px auto;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 6px;
+  background: var(--soft-bg);
+  border: 1px solid var(--border-card);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.82rem;
+}
+.slot-row input[type="time"] {
+  width: 80px;
+  padding: 4px;
+  border: 1px solid var(--border-card);
+  border-radius: 4px;
+  font-size: 0.8rem;
+  text-align: center;
+  outline: none;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  transition: all 0.2s var(--ease-smooth);
+}
+.slot-row input[type="time"]:focus {
+  border-color: var(--neon-blue);
+  box-shadow: 0 0 6px var(--neon-blue-glow);
+}
+.slot-row input[type="number"] {
+  width: 46px;
+  padding: 4px;
+  border: 1px solid var(--border-card);
+  border-radius: 4px;
+  font-size: 0.8rem;
+  text-align: center;
+  outline: none;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  transition: all 0.2s var(--ease-smooth);
+}
+.slot-row input[type="number"]:focus {
+  border-color: var(--neon-blue);
+  box-shadow: 0 0 6px var(--neon-blue-glow);
+}
+.slot-sep {
+  color: var(--text-secondary);
+  font-weight: 700;
+  text-align: center;
+}
+.slot-unit {
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  white-space: nowrap;
+}
+.slot-del {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1.15rem;
+  padding: 0;
+  border-radius: 4px;
+  line-height: 1;
+  transition: all 0.2s var(--ease-smooth);
+  text-align: center;
+}
+.slot-del:hover {
+  color: var(--neon-red);
+  background: rgba(239, 68, 68, 0.15);
+}
+.slot-badge {
+  font-size: 0.65rem;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: rgba(249, 115, 22, 0.15);
+  color: var(--neon-orange);
+  font-weight: 700;
+  border: 1px solid rgba(249, 115, 22, 0.3);
+  white-space: nowrap;
+}
+.add-slot-btn {
+  width: 100%;
+  padding: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--neon-blue);
+  background: none;
+  border: 1px dashed var(--border-card-hover);
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 6px;
+  transition: all 0.2s var(--ease-smooth);
+}
+.add-slot-btn:hover {
+  border-color: var(--neon-blue);
+  background: rgba(59, 130, 246, 0.04);
+  box-shadow: 0 0 10px var(--neon-blue-glow);
+}
+.overlap-hint {
+  color: var(--neon-red);
+  font-size: 0.76rem;
+  font-weight: 600;
+  min-height: 1.2em;
+  margin-bottom: 4px;
+}
+.ctrl-btn-apply {
+  width: 100%;
+  padding: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--neon-blue);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s var(--ease-smooth);
+  box-shadow: 0 2px 6px var(--neon-blue-glow);
+  margin-top: 4px;
+}
+.ctrl-btn-apply:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+/* Interactive Task Command Queue styling (Scrollable inside Card) */
+.tasks-card {
+  display: flex;
+  flex-direction: column;
+}
+#taskList {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+#taskList::-webkit-scrollbar {
+  width: 4px;
+}
+#taskList::-webkit-scrollbar-thumb {
+  background: var(--border-card-hover);
+  border-radius: 99px;
+}
+
+.task-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 12px;
+  border: 1px solid var(--border-card);
+  font-size: 0.84rem;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  background: var(--soft-bg);
+  transition: all 0.2s var(--ease-smooth);
+}
+.task-item:last-child { margin-bottom: 0; }
+.task-item[draggable="true"] { cursor: grab; }
+.task-item[draggable="true"]:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--neon-blue);
+  box-shadow: 0 3px 8px var(--neon-blue-glow);
+}
+.task-item.dragging {
+  opacity: 0.55;
+  transform: scale(0.98) rotate(1deg);
+  border-color: var(--neon-blue);
+  background: rgba(59, 130, 246, 0.1);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+.task-item.drag-over {
+  border-color: var(--neon-blue);
+  transform: translateY(2px);
+}
+.task-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.task-drag {
+  color: var(--text-muted);
+  font-size: 1rem;
+  user-select: none;
+}
+.task-order {
+  width: 20px;
+  height: 20px;
+  background: var(--neon-blue);
+  color: #fff;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.task-type {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.task-badge {
+  font-size: 0.7rem;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.task-badge.done {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--neon-green);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+.task-badge.sent {
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--neon-blue);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+.task-badge.pending {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--neon-yellow);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+.task-badge.failed {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--neon-red);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+.task-time {
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  font-family: var(--f-mono);
+}
+.task-del {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1.05rem;
+  padding: 0 2px;
+  border-radius: 4px;
+  line-height: 1;
+  transition: all 0.2s var(--ease-smooth);
+}
+.task-del:hover {
+  color: var(--neon-red);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* Monospace Console Glass Terminal Heartbeat history styling */
+.history-card {
+  display: flex;
+  flex-direction: column;
+}
+.terminal-body {
+  border-radius: 8px;
+  overflow: auto;
+  border: 1px solid var(--border-card);
+  background: rgba(0, 0, 0, 0.25);
+  box-shadow: inset 0 4px 18px rgba(0, 0, 0, 0.45);
+  padding: 10px 12px;
+  flex: 1;
+  min-height: 0;
+  transition: all 0.4s var(--ease-smooth);
+}
+
+/* Light Theme overrides for Frosty Semi-transparent Terminal logs */
+body.theme-light .terminal-body {
+  background: rgba(0, 0, 0, 0.03);
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.05);
+  border-color: var(--border-card);
+}
+
+.terminal-body::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.terminal-body::-webkit-scrollbar-thumb {
+  background: var(--border-card-hover);
+  border-radius: 99px;
+}
+.hb-table {
+  width: 100%;
+  font-size: 0.82rem;
+  border-collapse: collapse;
+  font-family: var(--f-mono);
+}
+.hb-table th {
+  color: var(--neon-blue);
+  font-weight: 700;
+  text-align: left;
+  padding: 6px 10px;
+  border-bottom: 2px solid var(--line-color);
+  text-transform: uppercase;
+  font-size: 0.74rem;
+  letter-spacing: 0.05em;
+}
+.hb-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--line-color);
+  color: rgba(255, 255, 255, 0.8);
+  transition: all 0.2s var(--ease-smooth);
+}
+body.theme-light .hb-table td {
+  color: var(--text-primary);
+  border-bottom-color: rgba(0, 0, 0, 0.06);
+}
+body.theme-light .hb-table th {
+  border-bottom-color: rgba(0, 0, 0, 0.1);
+}
+.hb-table tbody tr:hover td {
+  background: rgba(59, 130, 246, 0.08);
+  color: var(--neon-blue);
+}
+.hb-table tr:last-child td { border-bottom: none; }
+
+/* Elegant弹力物理 Toast notification system */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-card-hover);
+  color: var(--text-primary);
+  padding: 14px 20px;
+  border-radius: 10px;
+  font-size: 0.84rem;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+  transform: translateX(120%) scale(0.9);
+  transition: transform 0.4s var(--ease-elastic), opacity 0.4s var(--ease-smooth);
+  opacity: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+.toast.show {
+  transform: translateX(0) scale(1);
+  opacity: 1;
+}
+.toast-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--neon-green);
+  box-shadow: 0 0 8px var(--neon-green);
+  flex-shrink: 0;
+  animation: pulse-ring 2.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+.toast-msg {
+  line-height: 1.4;
+  font-weight: 500;
+}
+.toast-time {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-family: var(--f-mono);
+  display: block;
+  margin-top: 2px;
+}
+
+/* Responsiveness Media Queries */
+@media(max-height:820px){
+  :root{--topbar-h:56px;--gap:10px;--card-pad:12px}
+  .brand p{display:none}
+  .card-title{margin-bottom:8px}
+  .summary-tile-compact{padding:6px}
+  .status-row{padding:4px 6px;font-size:0.78rem}
+  .task-item{padding:7px 10px;margin-bottom:5px}
+  .ctrl-btn-mini{padding:6px 10px}
+  .sleep-row-compact, .page-row-compact, .default-row-compact{padding:4px 8px;margin-bottom:6px}
+}
+
+@media(max-width:1040px) {
+  .dashboard-grid{grid-template-columns:370px minmax(0, 1fr)}
+  .status-pill{display:none}
+}
+
+@media(max-width:768px){
+  html,body{overflow:auto}
+  .topbar-inner{padding:12px 16px;align-items:flex-start;flex-direction:column;height:auto;}
+  .topbar{height:auto;}
+  .dashboard-grid{
+    height:auto;
+    min-height:calc(100vh - var(--topbar-h));
+    grid-template-columns:1fr;
+    grid-template-rows:auto;
+    grid-template-areas:
+      "status"
+      "control"
+      "tasks"
+      "history";
+    padding:12px;
+    overflow:visible;
+  }
+  .card{overflow:visible;min-height:auto}
+  .slot-row{grid-template-columns:80px 10px 80px 10px 46px 10px auto;padding:6px;}
+}
+</style>
+</head>
+<body>
+
+<div class="app-container">
+  <!-- Topbar Header -->
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <h1>Eink Console <span class="heartbeat-pulse-glow" id="heartbeatGlow"></span></h1>
+        <p>墨水屏设备管理、远程任务与配额监控</p>
+      </div>
+      <div class="top-actions">
+        <button class="theme-toggle-btn" id="themeToggleBtn" title="切换主题">
+          <svg class="sun-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          <svg class="moon-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
+        <span class="status-pill">等待心跳</span>
+        <button class="refresh-btn">刷新</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard-grid">
+    <!-- Top Left: Device Status Card -->
+    <div class="card status-card">
+      <div class="card-title">设备状态
+        <select id="deviceSelect"></select>
+      </div>
+      
+      <!-- Compact Top layout: Battery circle + Summary Tiles side by side -->
+      <div class="status-card-top">
+        <div class="battery-circular">
+          <svg viewBox="0 0 36 36" class="circular-chart green">
+            <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+            <path class="circle" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+          </svg>
+          <div class="battery-info">
+            <span class="battery-pct-val" id="circularBatteryPct">--</span>
+            <span class="battery-volt-val" id="circularBatteryVolt">--</span>
+          </div>
+        </div>
+        
+        <div class="summary-grid-compact">
+          <div class="summary-tile-compact">
+            <div class="summary-label-compact">电池</div>
+            <div class="summary-value-compact" id="batteryPct">--</div>
+            <div class="summary-sub-compact" id="batteryVolt">--</div>
+          </div>
+          <div class="summary-tile-compact">
+            <div class="summary-label-compact">下次唤醒</div>
+            <div class="summary-value-compact" id="nextWake" style="font-size: 0.88rem; white-space: nowrap;">--</div>
+            <div class="summary-sub-compact">间隔 <span id="sleepMinText">--</span></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 3-Column Micro Grid for parameters (Dynamic innerHTML row injection) -->
+      <div class="status-grid">
+        <div class="empty">暂无设备心跳</div>
+      </div>
+    </div>
+
+    <!-- Bottom Left: 远程控制 Card (Redesigned with Tabs) -->
+    <div class="card control-card">
+      <div class="card-title">远程控制</div>
+      
+      <!-- Sliding Active Tab Line Headers -->
+      <div class="ctrl-tab-header">
+        <button class="ctrl-tab-btn active" data-tab="instant">即时控制</button>
+        <button class="ctrl-tab-btn" data-tab="wake">唤醒配置</button>
+      </div>
+      
+      <!-- Tab Content Panels -->
+      <div class="ctrl-tab-content">
+        <!-- Panel 1: Instant Action Commands -->
+        <div class="ctrl-tab-panel" id="tabInstant">
+          <div class="ctrl-mini-actions">
+            <button class="ctrl-btn-mini" id="syncBtn">对时</button>
+            <button class="ctrl-btn-mini restart" id="restartBtn">重启</button>
+          </div>
+          <div class="page-row-compact">
+            <label>切换页面</label>
+            <select id="pageSelect">
+              <option value="0">总览</option>
+              <option value="1">Google</option>
+              <option value="2">Codex</option>
+              <option value="3">智谱</option>
+              <option value="4">设备</option>
+            </select>
+            <button id="switchPageBtn">切换</button>
+          </div>
+        </div>
+        
+        <!-- Panel 2: Wake Scheduling Setup -->
+        <div class="ctrl-tab-panel" id="tabWake" style="display: none;">
+          <div class="mode-switch" id="modeSwitch">
+            <button class="mode-btn active" data-mode="fixed">固定间隔</button>
+            <button class="mode-btn" data-mode="custom">自定义时段</button>
+          </div>
+          <div id="fixedPanel">
+            <div class="sleep-row-compact">
+              <label>唤醒间隔</label>
+              <input type="number" id="sleepInput" value="5" min="1" max="120">
+              <span>分钟</span>
+              <button id="applySleepBtn">应用</button>
+            </div>
+          </div>
+          <div id="customPanel" style="display:none">
+            <div class="default-row-compact">
+              <label>默认间隔</label>
+              <input type="number" id="defaultMinInput" value="30" min="1" max="1440">
+              <span>分钟</span>
+            </div>
+            <div class="slots-label">时段</div>
+            <div id="slotList"></div>
+            <button class="add-slot-btn" id="addSlotBtn">+ 添加时段</button>
+            <div class="overlap-hint" id="overlapHint"></div>
+            <button class="ctrl-btn-apply" id="applyScheduleBtn">应用计划</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Right: 任务队列 Card -->
+    <div class="card tasks-card">
+      <div class="card-title">任务队列 <span>拖拽排序执行顺序</span></div>
+      <div id="taskList">
+        <div class="empty">暂无任务</div>
+      </div>
+    </div>
+
+    <!-- Bottom Right: 心跳历史 Card -->
+    <div class="card history-card">
+      <div class="card-title">心跳历史 
+        <select id="hbLimit">
+          <option value="10">最近 10 条</option>
+          <option value="100">最近 100 条</option>
+          <option value="200">最近 200 条</option>
+          <option value="0">全部</option>
+        </select>
+      </div>
+      <div class="terminal-body">
+        <table class="hb-table">
+          <thead>
+            <tr>
+              <th>时间</th>
+              <th>电压</th>
+              <th>电量</th>
+              <th>WiFi</th>
+              <th>唤醒</th>
+              <th>间隔</th>
+              <th>信号</th>
+              <th>内存</th>
+              <th>运行</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="9">暂无心跳</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  // Remote Control Card Tab switching handler
+  var ctrlTabHeader = document.querySelector('.ctrl-tab-header');
+  var ctrlTabPanels = document.querySelectorAll('.ctrl-tab-panel');
+  if (ctrlTabHeader) {
+    ctrlTabHeader.addEventListener('click', function(e) {
+      var btn = e.target.closest('.ctrl-tab-btn');
+      if (!btn) return;
+      ctrlTabHeader.querySelectorAll('.ctrl-tab-btn').forEach(function(b) {
+        b.classList.remove('active');
+      });
+      btn.classList.add('active');
+      
+      var tabName = btn.dataset.tab;
+      ctrlTabPanels.forEach(function(panel) {
+        if (panel.id === 'tab' + tabName.charAt(0).toUpperCase() + tabName.slice(1)) {
+          panel.style.display = 'flex';
+        } else {
+          panel.style.display = 'none';
+        }
+      });
+    });
+  }
+
+  // Dual-Theme toggler logic
+  var themeToggleBtn = document.getElementById('themeToggleBtn');
+  var sunIcon = themeToggleBtn.querySelector('.sun-icon');
+  var moonIcon = themeToggleBtn.querySelector('.moon-icon');
+
+  function setTheme(theme) {
+    if (theme === 'light') {
+      document.body.classList.add('theme-light');
+      sunIcon.style.display = 'none';
+      moonIcon.style.display = 'block';
+      localStorage.setItem('theme', 'light');
+    } else {
+      document.body.classList.remove('theme-light');
+      sunIcon.style.display = 'block';
+      moonIcon.style.display = 'none';
+      localStorage.setItem('theme', 'dark');
+    }
+  }
+
+  var savedTheme = localStorage.getItem('theme') || 'dark';
+  setTheme(savedTheme);
+
+  themeToggleBtn.addEventListener('click', function() {
+    var isLight = document.body.classList.contains('theme-light');
+    setTheme(isLight ? 'dark' : 'light');
+  });
+
+  var currentMac='';
+  var lastSeenTime=null;
+  var sleepMin=0;
+  var list=document.getElementById('taskList');
+  var dragEl=null;
+  var deviceSelect=document.getElementById('deviceSelect');
+  var knownDevices=[];
+  var currentSchedule=null;
+  var currentMode='fixed';
+
+  deviceSelect.addEventListener('change',function(){
+    var mac=this.value;
+    if(mac){
+      currentMac=mac;
+      loadStatus();
+    }
+  });
+
+  // === Mode switch ===
+  var modeSwitch=document.getElementById('modeSwitch');
+  var fixedPanel=document.getElementById('fixedPanel');
+  var customPanel=document.getElementById('customPanel');
+  modeSwitch.addEventListener('click',function(e){
+    var btn=e.target.closest('.mode-btn');
+    if(!btn)return;
+    modeSwitch.querySelectorAll('.mode-btn').forEach(function(b){b.classList.remove('active')});
+    btn.classList.add('active');
+    currentMode=btn.dataset.mode;
+    fixedPanel.style.display=currentMode==='fixed'?'':'none';
+    customPanel.style.display=currentMode==='custom'?'':'none';
+  });
+
+  // === Slot management ===
+  var slotList=document.getElementById('slotList');
+
+  function addSlot(start,end,interval){
+    var div=document.createElement('div');
+    div.className='slot-row';
+    div.innerHTML='<input type="time" class="slot-start" value="'+esc(start||'08:00')+'">'+
+      '<span class="slot-sep">→</span>'+
+      '<input type="time" class="slot-end" value="'+esc(end||'18:00')+'">'+
+      '<span class="slot-unit">每</span>'+
+      '<input type="number" class="slot-interval" value="'+(interval||10)+'" min="1" max="1440">'+
+      '<span class="slot-unit">m</span>'+
+      '<button class="slot-del" title="删除">×</button>';
+    slotList.appendChild(div);
+    div.querySelector('.slot-del').addEventListener('click',function(){div.remove();validateSlots()});
+    div.querySelectorAll('input').forEach(function(inp){inp.addEventListener('input',validateSlots)});
+    validateSlots();
+    return div;
+  }
+
+  function getSlots(){
+    var slots=[];
+    slotList.querySelectorAll('.slot-row').forEach(function(row){
+      var s=row.querySelector('.slot-start').value;
+      var e=row.querySelector('.slot-end').value;
+      var iv=Number(row.querySelector('.slot-interval').value)||5;
+      if(s&&e)slots.push({start:s,end:e,interval_min:iv});
+    });
+    return slots;
+  }
+
+  // Helper
+  function parseHM(v){var p=v.split(':');if(p.length!==2)return -1;var h=Number(p[0]),m=Number(p[1]);if(h<0||h>23||m<0||m>59)return -1;return h*60+m}
+
+  function validateSlots(){
+    var hint=document.getElementById('overlapHint');
+    var slots=getSlots();
+    if(slots.length<2){hint.textContent='';return true}
+    var bounds=[];
+    for(var i=0;i<slots.length;i++){
+      var sm=parseHM(slots[i].start),em=parseHM(slots[i].end);
+      if(sm<0||em<0||sm===em)continue;
+      if(em<=sm)em+=1440;
+      bounds.push({s:sm,e:em,idx:i});
+    }
+    bounds.sort(function(a,b){return a.s-b.s});
+    for(var i=1;i<bounds.length;i++){
+      if(bounds[i].s<bounds[i-1].e){
+        hint.textContent='时段有交叉，请调整';
+        return false;
+      }
+    }
+    // Update cross-midnight badges
+    slotList.querySelectorAll('.slot-row').forEach(function(row){
+      var s=row.querySelector('.slot-start').value;
+      var e=row.querySelector('.slot-end').value;
+      var badge=row.querySelector('.slot-badge');
+      var sm=parseHM(s),em=parseHM(e);
+      if(sm>=0&&em>=0&&em<=sm){
+        if(!badge){badge=document.createElement('span');badge.className='slot-badge';badge.textContent='跨日';row.querySelector('.slot-sep').after(badge)}
+      }else if(badge){badge.remove()}
+    });
+    hint.textContent='';
+    return true;
+  }
+
+  document.getElementById('addSlotBtn').addEventListener('click',function(){addSlot('','')});
+
+  function renderSlots(slots){
+    slotList.innerHTML='';
+    (slots||[]).forEach(function(s){addSlot(s.start,s.end,s.interval_min)});
+    validateSlots();
+  }
+
+  function renderSchedule(schedule){
+    currentSchedule=schedule;
+    if(schedule&&schedule.mode==='custom'){
+      currentMode='custom';
+      modeSwitch.querySelectorAll('.mode-btn').forEach(function(b){b.classList.toggle('active',b.dataset.mode==='custom')});
+      fixedPanel.style.display='none';
+      customPanel.style.display='';
+      document.getElementById('defaultMinInput').value=schedule.default_min||30;
+      document.getElementById('sleepInput').value=schedule.fixed_min||5;
+      renderSlots(schedule.slots);
+    }else{
+      currentMode='fixed';
+      modeSwitch.querySelectorAll('.mode-btn').forEach(function(b){b.classList.toggle('active',b.dataset.mode==='fixed')});
+      fixedPanel.style.display='';
+      customPanel.style.display='none';
+      if(schedule)document.getElementById('sleepInput').value=schedule.fixed_min||5;
+    }
+  }
+
+  deviceSelect.addEventListener('change',function(){
+    var mac=this.value;
+    if(mac){
+      currentMac=mac;
+      loadStatus();
+    }
+  });
+
+  function renderDeviceSelect(devices,activeMac){
+    knownDevices=devices||[];
+    var prev=deviceSelect.value;
+    deviceSelect.innerHTML='';
+    if(!knownDevices.length){
+      var opt=document.createElement('option');opt.value='';opt.textContent='暂无设备';deviceSelect.appendChild(opt);
+      return;
+    }
+    knownDevices.forEach(function(d){
+      var opt=document.createElement('option');
+      opt.value=d.mac;
+      opt.textContent=fmtMac(d.mac)+' ('+d.pct+'%)';
+      deviceSelect.appendChild(opt);
+    });
+    if(activeMac){
+      deviceSelect.value=activeMac;
+    }else if(prev && knownDevices.some(function(d){return d.mac===prev})){
+      deviceSelect.value=prev;
+    }
+  }
+
+  function qs(sel){return document.querySelector(sel)}
+  function qsa(sel){return Array.from(document.querySelectorAll(sel))}
+  function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+  function formatTime(d){return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0')+':'+d.getSeconds().toString().padStart(2,'0')}
+  function formatDateTime(d){return d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0')+'-'+d.getDate().toString().padStart(2,'0')+' '+formatTime(d)}
+  function fmtMac(m){if(!m)return '';return m.replace(/(.{2})/g,'$1:').slice(0,-1)}
+
+  function showToast(msg,time){
+    var t=document.createElement('div');t.className='toast';
+    t.innerHTML='<span class="toast-dot"></span><span class="toast-msg">'+esc(msg)+'<br><span class="toast-time">'+esc(time||formatTime(new Date()))+'</span></span>';
+    document.body.appendChild(t);
+    setTimeout(function(){t.classList.add('show')},50);
+    setTimeout(function(){t.classList.remove('show');setTimeout(function(){t.remove()},400)},4000);
+  }
+
+  function api(path,opts){
+    opts=opts||{};
+    opts.headers=Object.assign({'Content-Type':'application/json'},opts.headers||{});
+    return fetch(path,opts).then(function(r){
+      if(!r.ok)return r.text().then(function(t){throw new Error(t||r.statusText)});
+      return r.json();
+    });
+  }
+
+  function updateNextWake(){
+    var lastSeenEl=document.getElementById('lastSeen');
+    var nextWakeEl=document.getElementById('nextWake');
+    var sleepMinTextEl=document.getElementById('sleepMinText');
+    if(!lastSeenTime||!sleepMin){
+      nextWakeEl.textContent='--';
+      if(lastSeenEl)lastSeenEl.textContent='--';
+      sleepMinTextEl.textContent='--';
+      return;
+    }
+    var now=new Date();
+    var diffMs=lastSeenTime.getTime()+sleepMin*60*1000-now.getTime();
+    if(diffMs<=0){
+      nextWakeEl.textContent='已超时';
+      nextWakeEl.title='预计 '+formatDateTime(new Date(lastSeenTime.getTime()+sleepMin*60*1000));
+      nextWakeEl.style.color='var(--neon-red)';
+    }else{
+      var mins=Math.ceil(diffMs/60000);
+      nextWakeEl.textContent='约 '+mins+' 分钟后';
+      nextWakeEl.title='';
+      nextWakeEl.style.color='';
+    }
+    if(lastSeenEl)lastSeenEl.textContent=formatDateTime(lastSeenTime);
+    sleepMinTextEl.textContent=sleepMin+' 分钟';
+  }
+
+  function renderStatus(data){
+    renderDeviceSelect(data.devices||[],data.latest?data.latest.mac:currentMac);
+    renderSchedule(data.schedule);
+    
+    var glowLight = document.getElementById('heartbeatGlow');
+    
+    if(!data.latest){
+      currentMac='';
+      lastSeenTime=null;
+      sleepMin=0;
+      document.querySelector('.status-pill').textContent='等待心跳';
+      document.getElementById('batteryPct').textContent='--';
+      document.getElementById('batteryVolt').textContent='--';
+      
+      document.getElementById('circularBatteryPct').textContent='--';
+      document.getElementById('circularBatteryVolt').textContent='--';
+      var circlePath = document.querySelector('.battery-circular .circle');
+      if(circlePath) circlePath.setAttribute('stroke-dasharray', '0, 100');
+      
+      if(glowLight) glowLight.style.backgroundColor = 'var(--text-muted)';
+      if(glowLight) glowLight.style.boxShadow = 'none';
+      
+      qs('.status-grid').innerHTML='<div class="empty">暂无设备心跳</div>';
+      renderHeartbeats([]);
+      renderTasks(data.tasks||[]);
+      updateNextWake();
+      return;
+    }
+    
+    var h=data.latest;
+    currentMac=h.mac||currentMac;
+    deviceSelect.value=currentMac;
+    sleepMin=h.sleep_min||sleepMin;
+    lastSeenTime=new Date(h.created_at);
+    document.querySelector('.status-pill').textContent='最近心跳 '+formatTime(lastSeenTime);
+    
+    // Online pulse indicator style update
+    if(glowLight) {
+      glowLight.style.backgroundColor = 'var(--neon-green)';
+      glowLight.style.boxShadow = '0 0 8px var(--neon-green)';
+    }
+    
+    // Update battery displays
+    var pctVal = h.pct || 0;
+    var voltVal = (h.voltage || 0).toFixed(2);
+    document.getElementById('batteryPct').textContent = pctVal + '%';
+    document.getElementById('batteryVolt').textContent = voltVal + 'V';
+    
+    document.getElementById('circularBatteryPct').textContent = pctVal + '%';
+    document.getElementById('circularBatteryVolt').textContent = voltVal + 'V';
+    
+    var circlePath = document.querySelector('.battery-circular .circle');
+    var chartSvg = document.querySelector('.battery-circular .circular-chart');
+    if (circlePath && chartSvg) {
+      circlePath.setAttribute('stroke-dasharray', pctVal + ', 100');
+      chartSvg.className.baseVal = 'circular-chart ' + (pctVal >= 70 ? 'green' : pctVal >= 50 ? 'yellow' : pctVal >= 30 ? 'orange' : 'red');
+    }
+    
+    qs('.status-grid').innerHTML=[
+      row('MAC',fmtMac(h.mac)),
+      row('IP',h.ip),
+      row('WiFi',h.ssid),
+      row('唤醒',h.wake),
+      row('信号',(h.rssi||0)+' dBm'),
+      row('内存',Math.round((h.free_heap||0)/1024)+' KB'),
+      row('固件',h.firmware),
+      row('设备时间',h.device_ts),
+      row('上次在线','<span id="lastSeen">'+esc(formatDateTime(lastSeenTime))+'</span>',true)
+    ].join('');
+    
+    renderHeartbeats(data.heartbeats||[]);
+    renderTasks(data.tasks||[]);
+    updateNextWake();
+  }
+
+  function row(label,value,isHtml){
+    return '<div class="status-row"><span class="status-label">'+esc(label)+'</span><span class="status-value">'+(isHtml?(value||'--'):esc(value||'--'))+'</span></div>';
+  }
+
+  function renderHeartbeats(items){
+    var body=qs('.hb-table tbody');
+    if(!items.length){body.innerHTML='<tr><td colspan="9" style="text-align:center;">暂无心跳</td></tr>';return;}
+    body.innerHTML=items.map(function(h){
+      var t=new Date(h.created_at);
+      return '<tr><td>'+formatDateTime(t)+'</td><td>'+Number(h.voltage||0).toFixed(2)+'V</td><td>'+esc(h.pct)+'%</td><td>'+esc(h.ssid||'--')+'</td><td>'+esc(h.wake)+'</td><td>'+esc(h.sleep_min||'--')+'m</td><td>'+esc(h.rssi||'--')+'</td><td>'+Math.round((h.free_heap||0)/1024)+'KB</td><td>'+esc(h.uptime_s||0)+'s</td></tr>';
+    }).join('');
+  }
+
+  function renderTasks(tasks){
+    if(!tasks.length){list.innerHTML='<div class="empty">暂无任务</div>';return;}
+    var order=0;
+    list.innerHTML=tasks.map(function(t){
+      var draggable=t.status==='pending';
+      var done=t.status==='done';
+      if(draggable)order++;
+      var params='';
+      if(t.type==='set_sleep'&&t.params&&t.params.minutes)params='('+t.params.minutes+'m)';
+      if(t.type==='switch_page'&&t.params&&t.params.page!=null){var names=['总览','Google','Codex','智谱','设备'];params='('+names[t.params.page]+')'}
+      var when=t.done_at?new Date(t.done_at):new Date(t.created_at);
+      return '<div class="task-item" '+(draggable?'draggable="true"':'')+' data-id="'+t.id+'" style="'+(done?'opacity:.55;cursor:default':'')+'">'+
+        '<div class="task-left"><span class="task-drag" style="'+(draggable?'':'visibility:hidden')+'">⣿</span><span class="task-order" style="'+(draggable?'':'background:var(--text-subtle)')+'">'+(draggable?order:'✓')+'</span><span class="task-type">'+esc(t.type+params)+'</span></div>'+
+        '<div style="display:flex;align-items:center;gap:8px"><span class="task-badge '+esc(t.status)+'">'+esc(t.status)+'</span><span class="task-time">'+formatDateTime(when)+'</span><button class="task-del" title="删除">×</button></div>'+
+      '</div>';
+    }).join('');
+  }
+
+  function renderQuota(data){
+    var listData=Array.isArray(data)?data:[data];
+    var providers=qs('.providers');
+    if(!providers) return; // Graceful return if Quota Card is removed from DOM
+    
+    if(!listData.length||!listData[0]){
+      providers.innerHTML='<div class="empty">暂无配额数据</div>';
+      return;
+    }
+    var flat=[];
+    listData.forEach(function(p){
+      [['H5',p.h5],['W',p.w],['MCP',p.mcp],['GM',p.gm],['CL',p.cl]].forEach(function(item){
+        if(item[1]!=null)flat.push({provider:p.p,label:item[0],pct:item[1]});
+      });
+    });
+    if(flat.length){
+      flat.sort(function(a,b){return a.pct-b.pct});
+      var min=flat[0],max=flat[flat.length-1];
+      document.getElementById('quotaMin').textContent=min.pct+'%';
+      document.getElementById('quotaMinSub').textContent=(min.provider||'')+' '+min.label;
+      document.getElementById('quotaMax').textContent=max.pct+'%';
+      document.getElementById('quotaMaxSub').textContent=(max.provider||'')+' '+max.label;
+      document.getElementById('quotaCount').textContent=flat.length;
+      document.getElementById('quotaProviderCount').textContent=listData.length+' 个 provider';
+    }
+    providers.innerHTML=listData.map(function(p){
+      var rows=[];
+      if(p.h5!=null)rows.push(qrow('H5',p.h5,p.h5r));
+      if(p.w!=null)rows.push(qrow('W',p.w,p.wr));
+      if(p.mcp!=null)rows.push(qrow('MCP',p.mcp,p.mcpr));
+      if(p.gm!=null)rows.push(qrow('GM',p.gm,p.gmr));
+      if(p.cl!=null)rows.push(qrow('CL',p.cl,p.clr));
+      return '<div class="provider"><div class="provider-name">'+esc((p.p||'provider').toUpperCase())+' <small>'+providerSub(p.p)+'</small></div>'+rows.join('')+'</div>';
+    }).join('');
+    qs('.quota-time').textContent='更新于 '+formatTime(new Date());
+  }
+
+  function qrow(label,pct,reset){
+    var cls=pct>=70?'green':pct>=50?'yellow':pct>=30?'orange':'red';
+    return '<div class="quota-row"><span class="quota-label">'+label+'</span><div class="bar-wrap"><div class="bar-fill '+cls+'" style="width:'+pct+'%"></div></div><span class="quota-pct">'+pct+'%</span><span class="quota-reset">'+esc(reset||'--')+'</span></div>';
+  }
+
+  function providerSub(p){
+    if(p==='codex')return 'ChatGPT';
+    if(p==='zhipu')return 'GLM';
+    if(p==='gemini')return 'Google';
+    return '';
+  }
+
+  function loadAll(){
+    loadStatus();
+    api('/api/quota').then(renderQuota).catch(function(){});
+  }
+
+  function loadStatus(){
+    var url='/api/status';
+    var sep='?';
+    if(currentMac){url+='?mac='+encodeURIComponent(currentMac);sep='&'}
+    var limit=document.getElementById('hbLimit').value;
+    url+=sep+'limit='+limit;
+    api(url).then(renderStatus).catch(function(){});
+  }
+
+  function createTask(type,params){
+    if(!currentMac){showToast('还没有设备心跳，无法创建任务');return;}
+    return api('/api/tasks',{method:'POST',body:JSON.stringify({mac:currentMac,type:type,params:params||{}})})
+      .then(function(){showToast('任务已创建',type);loadAll()})
+      .catch(function(e){showToast('创建任务失败',e.message)});
+  }
+
+  // === Drag and Drop + delete actions ===
+  list.addEventListener('dragstart',function(e){
+    if(!e.target.classList.contains('task-item')||!e.target.draggable)return;
+    dragEl=e.target;e.target.classList.add('dragging');e.dataTransfer.effectAllowed='move';
+  });
+  list.addEventListener('dragend',function(e){
+    e.target.classList.remove('dragging');
+    list.querySelectorAll('.task-item').forEach(function(el){el.classList.remove('drag-over')});
+    dragEl=null;updateOrder();
+  });
+  list.addEventListener('dragover',function(e){
+    e.preventDefault();e.dataTransfer.dropEffect='move';
+    var target=e.target.closest('.task-item[draggable="true"]');
+    if(target&&target!==dragEl){
+      list.querySelectorAll('.task-item').forEach(function(el){el.classList.remove('drag-over')});
+      target.classList.add('drag-over');
+    }
+  });
+  list.addEventListener('drop',function(e){
+    e.preventDefault();
+    var target=e.target.closest('.task-item[draggable="true"]');
+    if(target&&target!==dragEl&&dragEl){
+      var items=Array.from(list.querySelectorAll('.task-item[draggable="true"]'));
+      var fromIdx=items.indexOf(dragEl),toIdx=items.indexOf(target);
+      if(fromIdx<toIdx)target.after(dragEl);else target.before(dragEl);
+    }
+    list.querySelectorAll('.task-item').forEach(function(el){el.classList.remove('drag-over')});
+    updateOrder();
+  });
+  list.addEventListener('click',function(e){
+    var delBtn=e.target.closest('.task-del');
+    if(delBtn){
+      var item=delBtn.closest('.task-item');
+      if(item){
+        api('/api/tasks/'+item.dataset.id,{method:'DELETE'}).then(function(){
+          item.style.opacity='0';item.style.transition='opacity .2s';setTimeout(function(){item.remove();updateOrder()},200);
+        }).catch(function(err){showToast('删除失败',err.message)});
+      }
+    }
+  });
+  function updateOrder(){
+    var orders=[];
+    list.querySelectorAll('.task-item[draggable="true"]').forEach(function(el,i){
+      el.querySelector('.task-order').textContent=i+1;
+      orders.push({id:Number(el.dataset.id),sort_order:i});
+    });
+    if(orders.length)api('/api/tasks/sort',{method:'PUT',body:JSON.stringify({orders:orders})}).catch(function(){});
+  }
+
+  setInterval(updateNextWake,1000);
+
+  document.getElementById('syncBtn').addEventListener('click',function(){createTask('sync_time',{})});
+  document.getElementById('restartBtn').addEventListener('click',function(){createTask('restart',{})});
+  document.getElementById('switchPageBtn').addEventListener('click',function(){
+    var page=Number(document.getElementById('pageSelect').value);
+    createTask('switch_page',{page:page});
+  });
+  document.getElementById('applySleepBtn').addEventListener('click',function(){
+    if(!currentMac){showToast('还没有设备心跳');return}
+    var val=Number(document.getElementById('sleepInput').value||5);
+    api('/api/schedule',{method:'PUT',body:JSON.stringify({mac:currentMac,mode:'fixed',fixed_min:val,default_min:(currentSchedule&&currentSchedule.default_min)||30,slots:[]})})
+      .then(function(){showToast('固定间隔已更新',val+' 分钟');loadAll()})
+      .catch(function(e){showToast('保存失败',e.message)});
+  });
+  document.getElementById('applyScheduleBtn').addEventListener('click',function(){
+    if(!currentMac){showToast('还没有设备心跳');return}
+    if(!validateSlots()){return}
+    var slots=getSlots();
+    var defMin=Number(document.getElementById('defaultMinInput').value||30);
+    api('/api/schedule',{method:'PUT',body:JSON.stringify({mac:currentMac,mode:'custom',fixed_min:5,default_min:defMin,slots:slots})})
+      .then(function(){showToast('自定义计划已更新');loadAll()})
+      .catch(function(e){showToast('保存失败',e.message)});
+  });
+
+  document.querySelector('.refresh-btn').addEventListener('click',loadAll);
+  document.getElementById('hbLimit').addEventListener('change',loadStatus);
+
+  try{
+    var proto=location.protocol==='https:'?'wss':'ws';
+    var ws=new WebSocket(proto+'://'+location.host+'/ws');
+    ws.onmessage=function(e){
+      var evt=JSON.parse(e.data);
+      if(evt.type==='heartbeat'){
+        showToast('设备心跳 '+Number(evt.data.voltage||0).toFixed(2)+'V ('+(evt.data.pct||0)+'%)');
+        loadAll();
+      }else if(evt.type.indexOf('task')===0||evt.type==='schedule_changed'){
+        loadAll();
+      }
+    };
+  }catch(e){}
+
+  loadAll();
+})();
+</script>
+</body>
+</html>
