@@ -1,0 +1,139 @@
+name: Build & Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  # ── ESP32-C3 固件 ─────────────────────────────────────────────────────
+  firmware:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install PlatformIO
+        run: pip install platformio
+
+      - name: Build wft0420cz15
+        run: pio run -e wft0420cz15 -d firmware
+
+      - name: Build gdey042t81
+        run: pio run -e gdey042t81 -d firmware
+
+      - name: Rename firmware binaries
+        run: |
+          cp firmware/.pio/build/wft0420cz15/firmware_merged.bin firmware-wft0420cz15.bin
+          cp firmware/.pio/build/gdey042t81/firmware_merged.bin   firmware-gdey042t81.bin
+
+      - name: Upload firmware artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware
+          path: firmware-*.bin
+
+  # ── quota_checker（纯 Go，无 CGO）─────────────────────────────────────
+  quota-checker:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+          - goos: darwin
+            goarch: arm64
+          - goos: windows
+            goarch: amd64
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+
+      - name: Build
+        working-directory: backend/quota_go
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: 0
+        run: |
+          ext=""
+          [ "$GOOS" = "windows" ] && ext=".exe"
+          go build -trimpath -ldflags="-s -w" \
+            -o "quota_checker_${GOOS}_${GOARCH}${ext}" \
+            ./src/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: quota-checker-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: backend/quota_go/quota_checker_${{ matrix.goos }}_${{ matrix.goarch }}*
+
+  # ── smart_control（Go + CGO，需原生编译）──────────────────────────────
+  smart-control:
+    strategy:
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            target: linux-amd64
+            goos: linux
+            goarch: amd64
+          - runner: macos-latest
+            target: darwin-arm64
+            goos: darwin
+            goarch: arm64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+
+      - name: Build
+        working-directory: backend/smart_control
+        env:
+          CGO_ENABLED: 1
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          go build -trimpath -ldflags="-s -w" \
+            -o elnk-console \
+            .
+
+      - name: Package
+        run: |
+          mkdir -p pkg
+          cp backend/smart_control/elnk-console pkg/
+          cp -r backend/smart_control/static pkg/static
+          tar -C pkg -czf "elnk-console-${{ matrix.target }}.tar.gz" elnk-console static
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: smart-control-${{ matrix.target }}
+          path: elnk-console-${{ matrix.target }}.tar.gz
+
+  # ── 汇总发布到 GitHub Release ─────────────────────────────────────────
+  release:
+    needs: [firmware, quota-checker, smart-control]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: List artifacts
+        run: ls -lhR artifacts/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: artifacts/**/*
