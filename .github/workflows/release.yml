@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install PlatformIO
-        run: pip install platformio esptool
+        run: pip install platformio
 
       - name: Build wft0420cz15
         run: pio run -e wft0420cz15 -d firmware
@@ -23,21 +23,10 @@ jobs:
       - name: Build gdey042t81
         run: pio run -e gdey042t81 -d firmware
 
-      - name: Merge firmware binaries
+      - name: Collect merged firmware
         run: |
-          python -m esptool --chip esp32c3 merge_bin \
-            --flash_mode dio --flash_freq 40m --flash_size 4MB \
-            -o firmware-wft0420cz15.bin \
-            0x0 firmware/.pio/build/wft0420cz15/bootloader.bin \
-            0x8000 firmware/.pio/build/wft0420cz15/partitions.bin \
-            0x10000 firmware/.pio/build/wft0420cz15/firmware.bin
-
-          python -m esptool --chip esp32c3 merge_bin \
-            --flash_mode dio --flash_freq 40m --flash_size 4MB \
-            -o firmware-gdey042t81.bin \
-            0x0 firmware/.pio/build/gdey042t81/bootloader.bin \
-            0x8000 firmware/.pio/build/gdey042t81/partitions.bin \
-            0x10000 firmware/.pio/build/gdey042t81/firmware.bin
+          cp firmware/.pio/build/wft0420cz15/firmware_merged.bin firmware-wft0420cz15.bin
+          cp firmware/.pio/build/gdey042t81/firmware_merged.bin firmware-gdey042t81.bin
 
       - name: Upload firmware artifacts
         uses: actions/upload-artifact@v4
