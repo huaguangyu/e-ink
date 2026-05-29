@@ -14,12 +14,15 @@ def git_output(args):
         return ""
 
 git_sha = git_output(["rev-parse", "--short=7", "HEAD"])
+git_tag = git_output(["describe", "--tags", "--exact-match", "HEAD"])
 dirty = bool(git_output(["status", "--porcelain"]))
 
 local_version = "local-" + datetime.now().strftime("%Y%m%d-%H%M")
 
 if dirty:
     firmware_version = local_version
+elif git_tag:
+    firmware_version = git_tag
 elif git_sha:
     firmware_version = "g" + git_sha
 else:

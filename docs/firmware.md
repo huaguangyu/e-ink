@@ -131,7 +131,7 @@ data/
 ```
 上电 / 定时唤醒
   │
-  ├── 使用构建时注入的 Git 短 SHA，确认固件版本
+  ├── 使用构建时注入的 Git tag / 短 SHA，确认固件版本
   ├── 初始化 ADC、GPIO、LED
   ├── 检查唤醒原因 (boot / timer / button)
   ├── 读取电池电压
@@ -548,7 +548,7 @@ Inter 字体源文件位于：
 firmware/tools/fonts/Inter/
 ```
 
-其中包含 Inter Variable 原始字体和当前转换用的 static TTF。Variable Font 用于以后重新选择字重、字号或字符集；当前固件生成使用 `Inter-18pt-Regular.ttf`、`Inter-24pt-Regular.ttf`、`Inter-24pt-SemiBold.ttf`、`Inter-24pt-Bold.ttf`。
+其中只保留当前转换用到的 static TTF。当前固件生成使用 `Inter-18pt-Regular.ttf`、`Inter-24pt-Regular.ttf`、`Inter-24pt-SemiBold.ttf`、`Inter-24pt-Bold.ttf`。
 
 生成 Inter 的 Adafruit_GFX `GFXfont` 头文件：
 
@@ -733,7 +733,7 @@ do {
 [I main.cpp:246 setup] Wakeup: timer
 [I main.cpp:267 setup] Battery: 4.10V (95%)
 [I wifi_manager.cpp:26 connectWiFi] WiFi connecting, attempt=1/3 ssid=ExampleWiFi
-[I wifi_manager.cpp:51 connectWiFi] WiFi OK, ip=192.168.1.100 rssi=-45 elapsed=1200ms
+[I wifi_manager.cpp:51 connectWiFi] WiFi OK, ip=192.0.2.10 rssi=-45 elapsed=1200ms
 -- Fetch quota --
 [I quota.cpp:75 fetchAllQuota] Quota OK, providers=3
 [I main.cpp:347 loop] Quota phase elapsed=760ms
@@ -757,7 +757,7 @@ do {
 [I portal.cpp:177 startCaptivePortal] Captive portal started
 ... (手机配网) ...
 [I portal.cpp:119 operator()] Portal connecting to ssid=ExampleWiFi
-[I portal.cpp:146 operator()] Portal WiFi OK, ip=192.168.1.100
+[I portal.cpp:146 operator()] Portal WiFi OK, ip=192.0.2.10
 [I portal.cpp:184 handlePortalClients] Portal: deferred restart
 ```
 
