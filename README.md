@@ -2,7 +2,7 @@
 
 ESP32-C3 低功耗电子墨水屏，每 5 分钟自动唤醒，直连配额服务拉取 Gemini (Antigravity) / Codex / 智谱的大模型配额并显示。
 
-![架构](https://img.shields.io/badge/固件-ESP32--C3-blue) ![架构](https://img.shields.io/badge/后端-Go_1.26-00ADD8) ![架构](https://img.shields.io/badge/显示-4.2寸墨水屏-green)
+![架构](https://img.shields.io/badge/固件-ESP32--C3-blue) ![架构](https://img.shields.io/badge/后端-Go_1.26-00ADD8) ![架构](https://img.shields.io/badge/显示-4.2寸墨水屏-green) ![License](https://img.shields.io/badge/License-MIT-yellow)
 
 ```
 ┌──────────────┐    直连     ┌──────────────┐
@@ -402,3 +402,18 @@ e-ink/
 - [docs/firmware.md](docs/firmware.md) — 引脚定义、编译选项、配网协议
 - [docs/quota_checker.md](docs/quota_checker.md) — 配额服务 API、配置、缓存机制
 - [docs/smart_control.md](docs/smart_control.md) — 智控台 API、数据库、WebSocket、部署
+
+---
+
+## 开源协议
+
+- **本项目**：[MIT License](LICENSE) — 自由使用、修改、分发
+- **第三方依赖**：详见 [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES)
+
+硬件参考来源：
+
+| 来源 | 许可协议 | 商用 |
+|------|---------|------|
+| [InkSight](https://github.com/datascale-ai/inksight) | MIT | 可以 |
+| [一体化主板（OSHWhub）](https://oshwhub.com/qq173972819/project_mqihrlpc) | CERN-OHL-P-2.0 | 需作者授权 |
+| [3D 外壳（MakerWorld）](https://makerworld.com.cn/zh/models/2462959) | — | 禁止出售 |

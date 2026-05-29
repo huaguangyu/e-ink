@@ -1,0 +1,58 @@
+Third-Party Software Notices
+=============================
+
+This project uses the following third-party open source software.
+
+Firmware
+--------
+
+### ArduinoJson
+- License: MIT
+- Copyright (c) 2014-2025, Benoit BLANCHON
+- https://github.com/bblanchon/ArduinoJson
+
+### GxEPD2
+- License: GNU General Public License v3.0 (GPL-3.0)
+- https://github.com/ZinggJM/GxEPD2
+
+Backend
+-------
+
+### Gin
+- License: MIT
+- Copyright (c) 2014-present Manuel Martinez-Almeida
+- https://github.com/gin-gonic/gin
+
+### Gorilla WebSocket
+- License: BSD-3-Clause
+- Copyright (c) 2023 The Gorilla Authors. All rights reserved.
+- https://github.com/gorilla/websocket
+
+### go-sqlite3
+- License: MIT
+- Copyright (c) 2014 Yasuhiro Matsumoto
+- https://github.com/mattn/go-sqlite3
+
+### ServerChan SDK for Go
+- License: MIT
+- Copyright (c) 2024 Easy
+- https://github.com/easychen/serverchan-sdk-golang
+
+Hardware
+--------
+
+### InkSight
+- License: MIT
+- Copyright (c) 2026 datascale-ai
+- https://github.com/datascale-ai/inksight
+
+### InkSight 4.2" Custom PCB (一体化板子)
+- License: CERN-OHL-P-2.0
+- Author: Insane_新之助, nanhe多边形
+- https://oshwhub.com/qq173972819/project_mqihrlpc
+- Note: 平台声明未经作者授权禁止商业性使用
+
+### InkSight 4.2寸墨水屏外壳 (3D打印)
+- Author: MakerWorld 用户
+- https://makerworld.com.cn/zh/models/2462959
+- Note: 标注"无法出售"，禁止商用
