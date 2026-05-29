@@ -408,6 +408,7 @@ e-ink/
 ## 开源协议
 
 - **本项目**：[MIT License](LICENSE) — 自由使用、修改、分发
+- **固件依赖 GxEPD2**：[GPL-3.0](https://github.com/ZinggJM/GxEPD2)
 - **第三方依赖**：详见 [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES)
 
 硬件参考来源：
