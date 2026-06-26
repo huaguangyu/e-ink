@@ -11,10 +11,10 @@ import (
 )
 
 var (
-	baseDir   string
-	configDir string
-	cacheDir  string
-	authsDir  string
+	baseDir    string
+	configDir  string
+	cacheDir   string
+	authsDir   string
 	httpClient *http.Client
 )
 
@@ -31,7 +31,12 @@ func init() {
 	configDir = baseDir
 	cacheDir = filepath.Join(baseDir, "cache")
 	authsDir = filepath.Join(baseDir, "auths")
-	httpClient = &http.Client{Timeout: 30 * time.Second}
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	transport.TLSHandshakeTimeout = 30 * time.Second
+	httpClient = &http.Client{
+		Timeout:   30 * time.Second,
+		Transport: transport,
+	}
 }
 
 type GeminiConfig struct {

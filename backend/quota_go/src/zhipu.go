@@ -16,26 +16,45 @@ func fetchZhipu() (map[string]interface{}, error) {
 		return nil, fmt.Errorf("请先在 .config.json 中配置 zhipu.api_key")
 	}
 
-	req, err := http.NewRequest("GET", zhipuUsageURL, nil)
-	if err != nil {
-		return nil, fmt.Errorf("创建请求失败: %s", err)
-	}
-	req.Header.Set("Authorization", "Bearer "+apiKey)
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
+	var lastErr error
+	for attempt := 1; attempt <= 3; attempt++ {
+		req, err := http.NewRequest("GET", zhipuUsageURL, nil)
+		if err != nil {
+			return nil, fmt.Errorf("创建请求失败: %s", err)
+		}
+		req.Header.Set("Authorization", "Bearer "+apiKey)
+		resp, err := httpClient.Do(req)
+		if err != nil {
+			lastErr = err
+			if attempt < 3 {
+				time.Sleep(time.Duration(attempt) * time.Second)
+			}
+			continue
+		}
 
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("HTTP %d", resp.StatusCode)
+		if resp.StatusCode == http.StatusTooManyRequests || resp.StatusCode >= 500 {
+			lastErr = fmt.Errorf("HTTP %d", resp.StatusCode)
+			resp.Body.Close()
+			if attempt < 3 {
+				time.Sleep(time.Duration(attempt) * time.Second)
+			}
+			continue
+		}
+
+		if resp.StatusCode != 200 {
+			resp.Body.Close()
+			return nil, fmt.Errorf("HTTP %d", resp.StatusCode)
+		}
+
+		defer resp.Body.Close()
+		var data map[string]interface{}
+		if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+			return nil, fmt.Errorf("解析响应失败: %s", err)
+		}
+		return data, nil
 	}
 
-	var data map[string]interface{}
-	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
-		return nil, fmt.Errorf("解析响应失败: %s", err)
-	}
-	return data, nil
+	return nil, lastErr
 }
 
 func showZhipu(data map[string]interface{}) string {
